@@ -18,11 +18,17 @@ def generate_tikz_tape(s: str, index: int, length: int, style: str) -> str:
     Output: The LaTeX source code for generating the TikZ diagram.
     Writes: The LaTeX code to a file named "tikz_code.txt".
     """
+    length = length +1
+
+
     if len(s) > length:
         raise ValueError(
             "The length of the string cannot exceed the number" "of squares!"
         )
-    if index >= length:
+    
+    min_index = -1 if "l" in style else 0
+    max_index = length - 1 if "r" in style else length - 2
+    if not min_index <= index <= max_index:
         raise ValueError("The given index exceeds the number of squares!")
 
     # Begin the environments:
@@ -31,37 +37,48 @@ def generate_tikz_tape(s: str, index: int, length: int, style: str) -> str:
         tikz_code = "\\begin{center}\n" + tikz_code
 
     # Add extra squares at the left and right ends if necessary:
-    left_extra = 2 if "l" in style else 0
-    right_extra = 2 if "r" in style else 0
+    left_extra = 3 if "l" in style else 0
+    right_extra = 3 if "r" in style else 0
     total_length = length + left_extra + right_extra
 
     # Define the coordinate points:
-    for i in range(total_length + 1):
+    for i in range(total_length):
         tikz_code += f"\\coordinate (A{i}) at ({0.5 * i}, 0, 0);\n"
         tikz_code += f"\\coordinate (B{i}) at ({0.5 * i}, 0.5, 0);\n"
 
     # Add the string's characters to the diagram:
-    for i in range(length - 1):
+    for i in range(length-1):
         character = s[i] if i < len(s) and s[i] != " " else "$\square$"
         tikz_code += (
             f"\\coordinate (C{i + left_extra}) at"
             f"({0.5 * (i + left_extra) + 0.25}, 0.25, 0);\n"
         )
         tikz_code += f"\\node at (C{i + left_extra}) {{{character}}};\n"
+        
+    # for i, c in enumerate(s):
+    #     tikz_code += (f"\\coordinate (C{i + left_extra}) at"
+    #                   f"({0.5 * (i + left_extra) + 0.25}, 0.25, 0);\n")
+    #     tikz_code += f"\\node at (C{i + left_extra}) {{{c}}};\n"
+
 
     # Add "..." to the specified squares if asked to:
     if "l" in style:
         tikz_code += "\\coordinate (D) at (0.5, 0.25, 0);\n"
         tikz_code += "\\node at (D) {$ \\cdots $};\n"
+        tikz_code += "\\coordinate (E) at (1.25, 0.25, 0);\n"
+        tikz_code += "\\node at (E) {$ \\square $};\n"
     if "r" in style:
-        tikz_code += "\\coordinate (E) at" f"({0.5 * (total_length - 2)}, 0.25, 0);\n"
-        tikz_code += "\\node at (E) {$ \\cdots $};\n"
+        tikz_code += "\\coordinate (F) at" f"({0.5 * (total_length - 2)}, 0.25, 0);\n"
+        tikz_code += "\\node at (F) {$ \\cdots $};\n"
+        tikz_code += "\\coordinate (G) at" f"({0.5 * (total_length - 3) - 0.25}, 0.25, 0);\n"
+        tikz_code += "\\node at (G) {$ \\square $};\n"
 
     # Draw the vertical edges:
-    for i in range(left_extra, length + left_extra):
+    for i in range(left_extra - (1 if "l" in style else 0), length + left_extra + (1 if "r" in style else 0)):
         tikz_code += f"\\draw (B{i}) -- (A{i});\n"
     if "l" not in style:
         tikz_code += "\\draw (B0) -- (A0);\n"
+
 
     # Draw the bottom and top edges:
     b = 1 if "l" in style else 0
@@ -91,30 +108,30 @@ def generate_tikz_tape(s: str, index: int, length: int, style: str) -> str:
     return tikz_code
 
 
-# Example 1:
-s = "r e c u r s i o n !"
-index = 15
-length = 20
-style = "c"
-tikz_code = generate_tikz_tape(s, index, length, style)
+# # Example 1:
+# s = "r e c u r s i o n !"
+# index = 15
+# length = 20
+# style = "c"
+# tikz_code = generate_tikz_tape(s, index, length, style)
 
-# Example 2:
-s = "@1 1 0 1 0 1 1x0 1"
-index = 14
-length = 20
-style = "lrc"
-tikz_code = generate_tikz_tape(s, index, length, style)
+# # Example 2:
+# s = "@1 1 0 1 0 1 1x0 1"
+# index = 14
+# length = 20
+# style = "lrc"
+# tikz_code = generate_tikz_tape(s, index, length, style)
 
-# Example 3:
-s = "@0 1x0 0 1x0 1x0 1x"
-index = 7
-length = 20
-style = "rc"
-tikz_code = generate_tikz_tape(s, index, length, style)
+# # Example 3:
+# s = "@0 1x0 0 1x0 1x0 1x"
+# index = 7
+# length = 20
+# style = "rc"
+# tikz_code = generate_tikz_tape(s, index, length, style)
 
-# Example 4:
-s = "3:j0[Y!ZaLh?8/btm27"
-index = 1
-length = 20
-style = "lc"
-tikz_code = generate_tikz_tape(s, index, length, style)
+# # Example 4:
+# s = "3:j0[Y!ZaLh?8/btm27"
+# index = 1
+# length = 20
+# style = "lc"
+# tikz_code = generate_tikz_tape(s, index, length, style)
